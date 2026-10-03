@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050921"><meta name="description" content="Aster — an immersive music player">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230a1030'/%3E%3Cpath d='M18 15v34l28-17z' fill='%237c3cff'/%3E%3Cpath d='M22 25v14l13-7z' fill='%23ff1f8f'/%3E%3C/svg%3E"><link rel="stylesheet" href="styles.css"><title>Aster Music</title>
+</head>
+<body><div class="ambient" aria-hidden="true"></div><div class="shell">
+  <aside class="sidebar"><a class="brand" href="#" aria-label="Aster home"><span></span><span></span></a><p class="nav-label">Library</p>
+    <nav aria-label="Library"><button data-view="Playlists"><i>▣</i>Playlists</button><button data-view="Artists"><i>♙</i>Artists</button><button data-view="Songs"><i>♫</i>Songs</button><button class="active" data-view="Albums"><i>◎</i>Albums</button></nav>
+    <p class="nav-label discover">Discover</p><nav aria-label="Discover"><button data-view="Store"><i>♜</i>Store</button><button data-view="Radio"><i>≋</i>Radio</button><button data-view="Browse"><i>▤</i>Browse</button><button data-view="Liked"><i>♡</i>Liked</button></nav><button class="new-playlist" id="newPlaylist">New playlist <b>＋</b></button>
+  </aside>
+  <main><header><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search songs, artists, albums…"></label><div class="profile-actions"><button aria-label="Settings">⚙</button><button aria-label="Notifications">♧</button><span class="avatar">AR</span></div></header>
+    <section class="content"><div class="eyebrow" id="sectionLabel">Albums</div><h1 id="pageTitle">Popular</h1>
+      <div class="album-stage"><button class="arrow left" id="previousAlbum" aria-label="Previous album">‹</button><div class="disc d1"><i></i></div><div class="disc d2"><i></i></div><div class="disc featured"><i></i></div><div class="disc d4"><i></i></div><div class="disc d5"><i></i></div><button class="arrow right" id="nextAlbum" aria-label="Next album">›</button></div>
+      <div class="album-copy"><h2 id="albumTitle">Midnight Signals</h2><p id="albumArtist">Aster Vale · 2026</p></div><div class="featured-head"><div><small>this week</small><h2>Featured</h2></div><button id="seeAll">See all</button></div><div class="cards" id="cards"></div>
+    </section></main>
+  <section class="player" aria-label="Music player"><div class="now-playing"><span class="mini-cover" id="miniCover"></span><div><b id="trackTitle">Midnight Signals</b><small id="trackArtist">Aster Vale</small></div></div><div class="transport"><button id="prevTrack" aria-label="Previous">◀</button><button class="play" id="play" aria-label="Play">▶</button><button id="nextTrack" aria-label="Next">▶</button></div><div class="timeline"><span id="elapsed">0:00</span><input id="seek" type="range" min="0" max="100" value="34"><span id="duration">4:18</span></div><div class="utilities"><button id="shuffle" aria-label="Shuffle">⌁</button><button id="repeat" aria-label="Repeat">↻</button><span>♩</span><input id="volume" aria-label="Volume" type="range" min="0" max="100" value="72"><button id="like" aria-label="Like">♡</button></div></section>
+</div><div class="toast" id="toast" role="status"></div><script src="app.js"></script></body></html>

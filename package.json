@@ -1,0 +1,6 @@
+{
+  "name":"sonora-music",
+  "version":"2.0.0",
+  "private":true,
+  "scripts":{"start":"node backend/server.js"}
+}
