@@ -39,10 +39,6 @@ jobs:
           name: production-build
           path: dist
           if-no-files-found: error
-      - uses: actions/configure-pages@v5
-        if: github.event_name != 'pull_request'
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
@@ -207,6 +203,9 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Deploy production build to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
