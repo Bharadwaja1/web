@@ -2,5 +2,26 @@
   "name":"mood-tunes",
   "version":"2.0.0",
   "private":true,
-  "scripts":{"start":"node backend/server.js","build":"node scripts/build.mjs","test":"node scripts/test-lighting.cjs","test:lighting":"node scripts/test-lighting.cjs"}
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "node scripts/build.mjs",
+    "test": "npm run test:unit",
+    "lint": "node scripts/quality-check.cjs lint",
+    "format:check": "node scripts/quality-check.cjs format",
+    "test:unit": "node scripts/test-lighting.cjs",
+    "test:integration": "node scripts/api-integration-test.cjs",
+    "test:lighting": "node scripts/test-lighting.cjs",
+    "test:selenium": "node selenium-tests/tests/login-tests.js",
+    "test:appium": "node appium-tests/tests/mobile-e2e-tests.js",
+    "test:load:report": "node load-tests/report.js",
+    "test:security": "node security-tests/security-assessment.js",
+    "ci:quality": "npm run lint && npm run format:check && npm run test:unit && npm run build"
+  },
+  "devDependencies": {
+    "appium": "^3.0.0",
+    "appium-uiautomator2-driver": "^5.0.0",
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.35.0",
+    "webdriverio": "^9.20.0"
+  }
 }

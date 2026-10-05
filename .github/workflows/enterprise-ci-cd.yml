@@ -1,0 +1,232 @@
+name: Enterprise CI/CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  BASE_URL: http://127.0.0.1:4173
+
+jobs:
+  build:
+    name: ✅ Build & Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:unit
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: dist
+          if-no-files-found: error
+      - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: dist
+
+  selenium:
+    name: ✅ Selenium Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Start application
+        run: npm start > application.log 2>&1 &
+      - name: Wait for application
+        run: for i in {1..30}; do curl -fsS "$BASE_URL/api/health" && exit 0; sleep 1; done; cat application.log; exit 1
+      - run: npm run test:integration
+      - name: Run 300 Selenium cases
+        run: npm run test:selenium
+        env:
+          HEADLESS: 'true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Selenium-Test-Reports
+          path: |
+            FINAL REPORTS/Selenium_Test_Report.xlsx
+            FINAL REPORTS/Selenium_Test_Report.html
+          if-no-files-found: error
+
+  appium:
+    name: ✅ Mobile Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Register UiAutomator2 driver
+        run: npx appium driver install --source=npm appium-uiautomator2-driver
+      - name: Run 300 mobile cases in Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            HOST=0.0.0.0 npm start > application.log 2>&1 &
+            npx appium --allow-insecure uiautomator2:chromedriver_autodownload --log appium.log > /dev/null 2>&1 &
+            for i in {1..60}; do curl -fsS http://127.0.0.1:4173/api/health && curl -fsS http://127.0.0.1:4723/status && break; sleep 2; done
+            npm run test:appium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Appium-Test-Reports
+          path: |
+            FINAL REPORTS/Appium_Test_Report.xlsx
+            FINAL REPORTS/Appium_Test_Report.html
+          if-no-files-found: error
+
+  load:
+    name: ✅ Load Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: grafana/setup-k6-action@v1
+      - run: mkdir -p test-results
+      - name: Start application
+        run: npm start > application.log 2>&1 &
+      - name: Wait for application
+        run: for i in {1..30}; do curl -fsS "$BASE_URL/api/health" && exit 0; sleep 1; done; cat application.log; exit 1
+      - name: Execute 100-user baseline
+        run: k6 run load-tests/baseline.js
+      - name: Generate load reports
+        if: always() && hashFiles('test-results/k6-summary.json') != ''
+        run: npm run test:load:report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Load-Test-Reports
+          path: |
+            FINAL REPORTS/Load_Test_Report.xlsx
+            FINAL REPORTS/Load_Test_Report.html
+          if-no-files-found: error
+
+  security:
+    name: ✅ Security Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Start application
+        run: npm start > application.log 2>&1 &
+      - name: Wait for application
+        run: for i in {1..30}; do curl -fsS "$BASE_URL/api/health" && exit 0; sleep 1; done; cat application.log; exit 1
+      - name: Run 300 vulnerability and DAST cases
+        run: npm run test:security
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Vulnerability-Test-Reports
+          path: |
+            FINAL REPORTS/Vulnerability_Test_Report.xlsx
+            FINAL REPORTS/Vulnerability_Test_Report.html
+          if-no-files-found: error
+
+  reports:
+    name: ✅ Bundle Reports
+    needs: [selenium, appium, load, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-Test-Reports'
+          path: FINAL REPORTS
+          merge-multiple: true
+      - name: Validate and bundle all reports
+        run: |
+          test "$(find 'FINAL REPORTS' -maxdepth 1 -name '*.xlsx' | wc -l)" -eq 4
+          test "$(find 'FINAL REPORTS' -maxdepth 1 -name '*.html' | wc -l)" -eq 4
+          zip -r FINAL_REPORTS.zip 'FINAL REPORTS'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FINAL_REPORTS
+          path: FINAL_REPORTS.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy:
+    name: ✅ Deploy
+    if: github.event_name != 'pull_request'
+    needs: [build, reports]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy production build to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify:
+    name: ✅ Post-Deployment Verification
+    if: github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify deployed application and assets
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          for i in {1..30}; do curl -fsSL "$DEPLOYMENT_URL" -o index.html && break; sleep 5; done
+          grep -q '<title>Mood Tunes</title>' index.html
+          grep -q 'id="loginForm"' index.html
+          curl -fsSL "${DEPLOYMENT_URL}styles.css" -o styles.css
+          curl -fsSL "${DEPLOYMENT_URL}app.js" -o app.js
+          test -s styles.css
+          test -s app.js
+          echo "Deployment verified at $DEPLOYMENT_URL"
