@@ -1,6 +1,6 @@
 {
-  "name":"sonora-music",
+  "name":"mood-tunes",
   "version":"2.0.0",
   "private":true,
-  "scripts":{"start":"node backend/server.js","build":"node scripts/build.mjs"}
+  "scripts":{"start":"node backend/server.js","build":"node scripts/build.mjs","test":"node scripts/test-lighting.cjs","test:lighting":"node scripts/test-lighting.cjs"}
 }

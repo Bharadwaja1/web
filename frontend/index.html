@@ -4,79 +4,88 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080d1c">
-  <meta name="description" content="Sonora mood-based music player">
-  <link rel="stylesheet" href="styles.css?v=5">
-  <title>Sonora Music</title>
+  <meta name="description" content="Mood Tunes mood-based music player">
+  <link rel="stylesheet" href="styles.css?v=10">
+  <title>Mood Tunes</title>
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
   <section class="auth-screen" id="authScreen">
     <div class="auth-visual">
-      <a class="brand" href="#" aria-label="Sonora home"><span class="logo"><i></i><i></i><i></i><i></i><i></i></span><span>SONORA</span></a>
+      <a class="brand" href="#" aria-label="Mood Tunes home"><span class="logo"><i></i><i></i><i></i><i></i><i></i></span><span>MOOD TUNES</span></a>
       <div class="auth-message"><span class="kicker">SOUND WITHOUT LIMITS</span><h1>Music that<br>moves with you.</h1><p>Choose your mood. Find your sound. Keep every favorite close.</p></div>
     </div>
     <div class="auth-panel">
       <form class="auth-form" id="loginForm" data-form="login">
         <h2>Welcome back.</h2><p>Sign in to continue listening.</p>
-        <label>Email<input type="email" value="alex@sonora.fm" required></label>
-        <label>Password<input type="password" value="premium" minlength="4" required></label>
-        <button class="primary" type="submit">Sign in</button>
+        <label>Email<input type="email" placeholder="you@example.com" autocomplete="email" required></label>
+        <label>Password<input type="password" minlength="6" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Sign in</button><p id="authStatus" role="status"></p>
         <div class="auth-actions"><button type="button" data-auth="forgot">Forgot password?</button><button type="button" data-auth="signup">Create account</button></div>
       </form>
       <form class="auth-form hidden" id="signupForm" data-form="signup">
         <button class="back" type="button" data-auth="login">Back to sign in</button><h2>Create account.</h2><p>Start your personal listening space.</p>
         <label>Full name<input id="newName" type="text" placeholder="Alex Stone" required></label>
         <label>Email<input type="email" placeholder="you@example.com" required></label>
-        <label>Password<input type="password" minlength="6" placeholder="At least 6 characters" required></label>
+        <label>Password<input type="password" minlength="6" placeholder="At least 6 characters" autocomplete="new-password" required></label>
         <button class="primary" type="submit">Create account</button>
       </form>
       <form class="auth-form hidden" id="forgotForm" data-form="forgot">
         <button class="back" type="button" data-auth="login">Back to sign in</button><h2>Reset password.</h2><p>We’ll email you a secure reset link.</p>
         <label>Email<input type="email" placeholder="you@example.com" required></label>
-        <button class="primary" type="submit">Send reset link</button><div class="success hidden" id="resetSuccess">Reset link sent. Check your inbox.</div>
+        <button class="primary" type="submit">Send reset link</button><div class="success hidden" id="resetSuccess" role="status" aria-live="polite"></div>
       </form>
     </div>
   </section>
 
   <div class="app hidden" id="app">
     <aside class="sidebar" id="sidebar">
-      <button class="rail-toggle" id="railToggle" aria-label="Expand navigation" aria-expanded="false" aria-controls="sidebarNav" title="Menu"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h10M5 17h7"/></svg></button>
       <nav id="sidebarNav" aria-label="Main navigation">
         <button class="active" data-view="home" title="Home"><svg viewBox="0 0 24 24"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
         <button data-view="search" title="Search"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg><span>Search</span></button>
         <button data-view="liked" title="Favorites"><svg viewBox="0 0 24 24"><path d="M20.8 5.4a5.3 5.3 0 0 0-7.5 0L12 6.7l-1.3-1.3a5.3 5.3 0 1 0-7.5 7.5L12 21l8.8-8.1a5.3 5.3 0 0 0 0-7.5Z"/></svg><span>Favorites</span></button>
+        <button data-view="playlists" title="Playlists"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10m3 0 3 2-3 2z"/></svg><span>Playlists</span></button>
         <button data-view="recent" title="Recent"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8V3m9 4v5l3 2"/></svg><span>Recent</span></button>
       </nav>
-      <div class="profile"><span class="avatar">AS</span><span><b id="profileName">Alex Stone</b><small>Listener</small></span></div>
+      <button class="profile" data-view="profile" aria-label="Open profile" title="Profile"><span class="avatar">AS</span><span><b id="profileName">Alex Stone</b><small>Listener</small></span></button>
       <button class="logout" id="logout" title="Log out"><svg viewBox="0 0 24 24"><path d="m10 17 5-5-5-5m5 5H3m11-9h6v18h-6"/></svg><span>Log out</span></button>
     </aside>
     <main>
-      <header class="topbar"><div><small id="today"></small><h2 id="greeting">Good evening, Alex.</h2></div><div class="status-pill">SONORA <span> / </span> YOUR LISTENING SPACE</div></header>
+      <header class="topbar"><div><small id="today"></small><h2 id="greeting">Good evening, Alex.</h2><small id="syncStatus" role="status">Connecting to Firebase…</small></div><div class="status-pill">MOOD TUNES <span> / </span> YOUR LISTENING SPACE</div></header>
 
       <section class="view active" id="home">
-        <article class="hero">
-          <div class="hero-copy"><span class="kicker">YOUR DAILY MIX</span><h1>Your frequency.<br><em>Your feeling.</em></h1><p>Find a little more of what moves you.</p><button class="primary inline" id="playMix"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/></svg>Play your mix</button></div>
-          <div class="frequency-card" id="frequencyCard">
-            <div class="frequency-header"><span class="kicker">ON YOUR FREQUENCY</span><span class="signal-state" id="signalState">READY</span></div>
-            <canvas id="waveform" width="640" height="160" aria-hidden="true"></canvas>
-            <div class="frequency-track"><div><h2 id="featuredTitle">Golden Hour</h2><p id="featuredArtist">Neon Harbor · Afterglow</p></div><span class="mood-tag" id="featuredMood">Happy</span></div>
-            <span class="demo-label">Demo tone preview</span>
-          </div>
+        <article class="hero compact-hero">
+          <div class="hero-copy"><span class="kicker">YOUR DAILY MIX</span><h1>Your music.<br><em>Your feeling.</em></h1><p>Find a little more of what moves you.</p><button class="primary inline" id="playMix"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/></svg>Play your mix</button></div>
         </article>
-        <div class="section-title"><div><h2>How are you feeling?</h2><p>A different color for every state of mind.</p></div><span class="section-note">08 MOODS</span></div>
+        <div class="section-title"><div><h2>How are you feeling?</h2><p>Tap a mood for Telugu and Tamil music first, followed by other matching songs.</p></div><span class="section-note">08 MOODS</span></div>
         <div class="mood-grid" id="moodGrid"></div>
-        <div class="section-title"><div><h2>Made for you</h2><p>Explore your mood with demo audio previews.</p></div></div>
+        <div class="section-title"><div><h2>Regional discovery</h2><p>Stream independent music from Audius.</p></div><label class="region-picker">Region<select id="regionSelect" aria-label="Music region"><option value="global">Global</option><option value="india">India</option><option value="latin">Latin</option><option value="africa">Africa</option><option value="asia">Asia</option><option value="europe">Europe</option></select></label></div>
+        <p class="catalog-status" id="catalogStatus" role="status">Loading Audius music…</p>
         <div class="track-list" id="homeTracks"></div>
       </section>
 
-      <section class="view" id="search"><div class="page-title"><h1>Search</h1><p>Find a song, artist, album, or mood.</p></div><label class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg><input id="searchInput" type="search" placeholder="What do you want to hear?" aria-label="Search music"></label><div class="track-list" id="searchTracks"></div><p class="empty hidden" id="searchEmpty">No music found.</p></section>
+      <section class="view" id="search"><div class="page-title"><span class="kicker">DISCOVER YOUR NEXT FAVORITE</span><h1>Search music</h1><p>Explore tracks and artists across Audius.</p></div><form class="search-box" id="searchForm" role="search"><span class="search-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg></span><label class="search-field"><span>WHAT ARE YOU LOOKING FOR?</span><input id="searchInput" type="search" placeholder="Search songs or artists" aria-label="Search Audius music" autocomplete="off"></label><button class="search-submit" type="submit">Search <span aria-hidden="true">→</span></button></form><p class="search-status" id="searchStatus" role="status">Showing current Audius tracks</p><div class="track-list" id="searchTracks"></div><p class="empty hidden" id="searchEmpty">No music found.</p></section>
       <section class="view" id="liked"><div class="page-title"><h1>Favorites</h1><p>The music you saved.</p></div><div class="track-list" id="likedTracks"></div><p class="empty hidden" id="likedEmpty">Tap a heart to save music here.</p></section>
+      <section class="view" id="playlists"><div class="page-title"><h1>Playlists</h1><p>Your playlists sync across devices.</p></div><form id="playlistForm" class="playlist-form"><input id="playlistName" type="text" maxlength="100" placeholder="New playlist name" aria-label="New playlist name" required><button class="primary inline" type="submit">Create playlist</button></form><div id="playlistList" class="playlist-list"></div><p id="playlistEmpty" class="empty">No playlists yet.</p></section>
       <section class="view" id="recent"><div class="page-title"><h1>Recently played</h1><p>Continue from where you left off.</p></div><div class="track-list" id="recentTracks"></div><p class="empty hidden" id="recentEmpty">Your listening history is empty.</p></section>
+      <section class="view" id="profile">
+        <div class="page-title"><h1>Your profile</h1><p>Your Mood Tunes account and listening details.</p></div>
+        <article class="profile-card">
+          <div class="profile-identity"><span class="profile-avatar" id="profileAvatarLarge">AS</span><div><span class="kicker">MOOD TUNES LISTENER</span><h2 id="profileDisplayName">Alex Stone</h2><p id="profileEmail">alex@moodtunes.app</p></div></div>
+          <dl class="profile-details">
+            <div><dt>Account</dt><dd>Firebase user</dd></div><div><dt>Member since</dt><dd id="memberSince">—</dd></div>
+            <div><dt>Favorite tracks</dt><dd id="profileFavoriteCount">0</dd></div><div><dt>Recently played</dt><dd id="profileRecentCount">0</dd></div>
+          </dl>
+          <div class="profile-edit-area"><button class="back" id="editProfile" type="button">Edit profile</button><form id="profileForm" class="profile-form hidden"><label>Full name<input id="editName" type="text" maxlength="80" required></label><label>Email<input id="editEmail" type="email" required></label><label>Photo URL<input id="editPhoto" type="url" placeholder="https://example.com/photo.jpg"></label><div class="profile-form-actions"><button class="primary inline" type="submit">Save changes</button><button class="back" id="cancelProfileEdit" type="button">Cancel</button></div></form></div>
+        </article>
+        <section class="lighting-settings" aria-labelledby="lightingHeading"><h2 id="lightingHeading">Player lighting</h2><p>Choose how the music player reacts while a song is playing.</p><div class="lighting-fields"><label>Light mode<select id="lightingMode"><option value="off">Off</option><option value="beat">Beat</option><option value="dj" selected>DJ lights</option></select></label><label>Brightness <span id="lightingIntensityValue">90%</span><input id="lightingIntensity" type="range" min="0" max="100" value="90" aria-label="Player light brightness"></label></div><p id="lightingStatus" role="status">Start a song to see the lights.</p></section>
+        <div class="profile-data"><section><h2>Mood history</h2><div id="moodHistoryList"></div><p id="moodHistoryEmpty" class="empty">No moods recorded yet.</p></section><section><h2>Wellness data</h2><div id="wellnessList"></div><p id="wellnessEmpty" class="empty">No wellness data yet.</p></section></div>
+      </section>
     </main>
   </div>
 
   <section class="player" id="player" aria-label="Music player">
-    <div class="now-playing"><span class="cover player-art" id="cover" aria-hidden="true"></span><div class="track-details"><span class="player-eyebrow" id="playerStatus">READY TO PLAY</span><b id="trackTitle">Golden Hour</b><small id="trackArtist">Neon Harbor</small></div><button class="heart" id="playerFavorite" aria-label="Remove Golden Hour from favorites" aria-pressed="true"></button></div>
+    <div class="now-playing"><span class="music-disc" id="cover" aria-hidden="true"><i></i></span><div class="track-details"><span class="player-eyebrow" id="playerStatus">READY TO PLAY</span><b id="trackTitle">No track selected</b><small id="trackArtist">Browse Audius music</small></div><button class="heart" id="playerFavorite" aria-label="Favorite current track" aria-pressed="false"></button></div>
     <div class="player-center">
       <div class="player-controls">
         <button class="transport" id="previous" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14m14-14L8 12l11 7Z"/></svg></button>
@@ -85,9 +94,9 @@
       </div>
     </div>
     <div class="player-right"><div class="visualizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><label class="volume-control" title="Volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Zm4 4a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/></svg><input id="volume" type="range" min="0" max="100" value="35" aria-label="Volume"><span id="volumeValue">35%</span></label></div>
-    <div class="timeline"><span id="elapsed">0:00</span><input class="seek" id="seek" type="range" min="0" max="204" value="0" step="1" aria-label="Playback position" aria-valuetext="0:00 of 3:24"><span id="duration">3:24</span><span class="timeline-note">DEMO AUDIO</span></div>
+    <div class="timeline"><span id="elapsed">0:00</span><input class="seek" id="seek" type="range" min="0" max="0" value="0" step="1" aria-label="Playback position" aria-valuetext="0:00 of 0:00"><span id="duration">0:00</span></div>
   </section>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=5"></script>
+  <script type="module" src="app.js?v=16"></script>
 </body>
 </html>
